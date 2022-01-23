@@ -1,5 +1,7 @@
 <?php
 
+
+
 $params = require __DIR__ . '/params.php';
 $db = require __DIR__ . '/db.php';
 
@@ -15,6 +17,7 @@ $config = [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => '8o5-Y6jiAXIivUPDJ3ZjQRypGScBxLNu',
+            'baseUrl' => '',
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -43,15 +46,22 @@ $config = [
             ],
         ],
         'db' => $db,
-        /*
+
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
-            'rules' => [
-            ],
+            'rules' => array (''=>'site/index',
+                '<action>'=>'site/<action>',
+                ),
         ],
-        */
+
     ],
+    'modules' => [
+        'admin' => [
+            'class' => 'app\modules\admin\module',
+        ],
+    ],
+
     'params' => $params,
 ];
 
@@ -69,7 +79,9 @@ if (YII_ENV_DEV) {
         'class' => 'yii\gii\Module',
         // uncomment the following to add your IP if you are not connecting from localhost.
         //'allowedIPs' => ['127.0.0.1', '::1'],
+
     ];
 }
 
 return $config;
+
