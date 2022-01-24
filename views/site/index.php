@@ -1,4 +1,9 @@
 <?php
+/*require ini_get('vendor/autoload.php');
+require ini_get('vendor/yiisoft/yii2/Yii.php');
+
+require_once __DIR__."/config.php";
+require_once SITE_ROOT."/vendor/autoload.php";
 
 defined("YII_DEBUG") or define('YII_DEBUG', true);
 defined("YII_ENV") or define('YII_ENV', 'dev');
@@ -6,8 +11,8 @@ defined("YII_ENV") or define('YII_ENV', 'dev');
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../vendor/yiisoft/yii2/Yii.php';
 
-$config = require __DIR__ . '/../config/web.php';
-(new yii\web\Application($config))->run();
+$config = require __DIR__ . '../../config/web.php';
+(new yii\web\Application($config))->run();*/
 
 echo '<link rel="stylesheet" type="text/css" href="/yiiProject/web/css/site.css" />';
 echo '<link rel="stylesheet" type="text/css" href="/yiiProject/web/css/style.css" />';
@@ -77,7 +82,17 @@ echo '<link rel="stylesheet" type="text/css" href="/yiiProject/web/css/style.css
     <li><a href="#">3</a></li>
 
 </ul>
-
 <?php
-Yii::$app->view->renderFile('@app/views/site/right.php');
+# index.php
+//define('what', 'ever');
+//include 'right.php';
+
+# index.php (in document root (/usr/share/nginx/html))
+
+include __DIR__ . '/../site/right.php';
+
+echo getcwd();
+;
+//echo \Yii::$app->view->renderFile('/../views/site/index.php');
+
 ?>

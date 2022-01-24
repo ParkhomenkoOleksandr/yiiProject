@@ -31,8 +31,7 @@ use yii\helpers\ArrayHelper;
 
     <?= $form->field($model, 'topic_id')->dropDownList($topics) ?>
 
-    <?= $form->field($model, 'user_id')->dropDownList($users) ?>
-
+    <?= $form->field($model, 'user_id')->dropDownList($users) ?>?>
     <div class="form-group">
         <?= Html::submitButton('Save', ['class' => 'btn btn-success']) ?>
     </div>

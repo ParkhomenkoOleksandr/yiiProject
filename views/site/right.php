@@ -1,5 +1,5 @@
 <?php
-use Yii;
+
 ?>
 <div class="col-md-4" data-sticky_column>
 
