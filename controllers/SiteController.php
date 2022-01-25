@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use app\models\Comment;
+use app\models\CommentForm;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -9,12 +11,56 @@ use yii\web\Response;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
+use app\models\Topic;
+use app\models\Article;
+use app\models\SignupForm;
+use yii\data\Pagination;
+use app\models\SearchForm;
 
 class SiteController extends Controller
 {
     /**
      * {@inheritdoc}
      */
+
+    public function actionSearch()
+
+    {
+
+        $model = new SearchForm();
+
+        if (Yii::$app->request->isGet) {
+
+            $model->load(Yii::$app->request->get());
+
+            $data = $model->SearchAtricle(3);
+
+            $popular = Article::find()->orderBy('viewed desc')->limit(3)->all();
+
+            $recent = Article::find()->orderBy('date desc')->limit(3)->all();
+
+            $topics = Topic::find()->all();
+
+            return $this->render('search',[
+
+                'articles' => $data['articles'],
+
+                'pagination' => $data['pagination'],
+
+                'popular' => $popular,
+
+                'recent' => $recent,
+
+                'topics' => $topics,
+
+                'search' => $model->text
+
+            ]);
+
+        }
+
+    }
+
     public function behaviors()
     {
         return [
@@ -61,7 +107,47 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        $popular = Article::find()->orderBy('viewed desc')->limit(3)->all();
+
+        $recent = Article::find()->orderBy('date desc')->limit(3)->all();
+
+        $topics = Topic::find()->all();
+
+// build a DB query to get all articles
+
+        $query = Article::find();
+
+// get the total number of articles (but do not fetch the article data yet)
+
+        $count = $query->count();
+
+// create a pagination object with the total count
+
+        $pagination = new Pagination(['totalCount' => $count, 'pageSize'=> 1]);
+
+// limit the query using the pagination and retrieve the articles
+
+        $articles = $query->offset($pagination->offset)
+
+            ->limit($pagination->limit)
+
+            ->all();
+
+        return $this->render('index',[
+
+            'articles'=>$articles,
+
+            'pagination'=>$pagination,
+
+                'popular' => $popular,
+
+                'recent' => $recent,
+
+                'topics' => $topics
+
+
+        ]);
+
     }
 
     /**
@@ -69,34 +155,14 @@ class SiteController extends Controller
      *
      * @return Response|string
      */
-    public function actionLogin()
-    {
-        if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
-        }
 
-        $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
-        }
-
-        $model->password = '';
-        return $this->render('login', [
-            'model' => $model,
-        ]);
-    }
 
     /**
      * Logout action.
      *
      * @return Response
      */
-    public function actionLogout()
-    {
-        Yii::$app->user->logout();
 
-        return $this->goHome();
-    }
 
     /**
      * Displays contact page.
@@ -126,9 +192,135 @@ class SiteController extends Controller
         return $this->render('about');
     }
 
-    public function actionView()
+    public function actionView($id)
     {
-        return $this->render('single');
+
+        $article = Article::findOne($id);
+
+        $popular = Article::find()->orderBy('viewed desc')->limit(3)->all();
+
+        $recent = Article::find()->orderBy('date desc')->limit(3)->all();
+
+        $topics = Topic::find()->all();
+
+        $comments = $article->comments;
+
+        $commentsParent = array_filter($comments, function ($k) {
+
+            return $k['comment_id'] == null;
+
+        });
+
+        $commentsChild = array_filter($comments, function ($k) {
+
+            return ($k['comment_id'] != null && !$k['delete']);
+
+        });
+
+        $commentForm = new CommentForm();
+
+        return $this->render('single', [
+
+            'article' => $article,
+
+            'popular' => $popular,
+
+            'recent' => $recent,
+
+            'topics' => $topics,
+
+            'commentsParent' => $commentsParent,
+
+            'commentsChild' => $commentsChild,
+
+            'commentForm' => $commentForm,
+
+        ]);
+    }
+
+    public function actionTopic($id)
+    {
+
+        $query = Article::find()->where(['topic_id'=>$id]);
+
+
+        $count = $query->count();
+
+
+        // create a pagination object with the total count
+
+        $pagination = new Pagination(['totalCount' => $count, 'pageSize' => 1]);
+
+
+        // limit the query using the pagination and retrieve the articles
+
+        $articles = $query->offset($pagination->offset)
+
+            ->limit($pagination->limit)
+
+            ->all();
+
+
+        $popular = Article::find()->orderBy('viewed desc')->limit(3)->all();
+
+        $recent = Article::find()->orderBy('date desc')->limit(3)->all();
+
+        $topics = Topic::find()->all();
+
+        return $this->render('topic', [
+
+            'articles' => $articles,
+
+            'pagination' => $pagination,
+
+            'popular' => $popular,
+
+            'recent' => $recent,
+
+            'topics' => $topics,
+
+        ]);
+
+    }
+
+    public function actionComment($id, $id_comment = null)
+    {
+
+        $model = new CommentForm();
+
+        if (Yii::$app->request->isPost) {
+
+            $model->load(Yii::$app->request->post());
+
+            if ($model->saveComment($id, $id_comment)) {
+
+                return $this->redirect(['site/view', 'id' => $id]);
+
+            }
+
+        }
+
+    }
+
+    public function actionCommentDelete($id, $id_comment)
+    {
+
+        if (Yii::$app->request->isPost) {
+
+            $data = Comment::findOne($id_comment);
+
+            if ($data->user_id == Yii::$app->user->id) {
+
+                $data->delete = true;
+
+                $data->save(false);
+
+            }
+
+            return $this->redirect(['site/view', 'id' => $id]);
+
+        }
+
     }
 
 }

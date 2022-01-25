@@ -1,6 +1,6 @@
 {
     "autoload": {
-        "psr-4": {"bee\\selection\\": "backend/runtime/tmp-extensions/yii2-widget-selection"}
+        "psr-4": {"bee\\selection\\": "yii2/base/"}
     },
 
     "name": "yiisoft/yii2-app-basic",
@@ -75,5 +75,6 @@
             "type": "composer",
             "url": "https://asset-packagist.org"
         }
+
     ]
 }
